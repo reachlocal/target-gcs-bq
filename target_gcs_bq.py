@@ -112,7 +112,7 @@ def flush_to_file(stream, data, destination_path, headers, config, storage_clien
         writer.writerows(data[stream])
 
     bucket_name = config.get('bucket_name', '')
-    daily = config.get('daily', False)
+    daily = config.get('daily', False) == 'true'
     bucket = storage_client.get_bucket(bucket_name)
 
     if daily:
@@ -124,7 +124,7 @@ def flush_to_file(stream, data, destination_path, headers, config, storage_clien
     blob.upload_from_filename(filepath)
     logger.info(f'Uploaded to {blob_path}')
 
-    if config.get('upload_to_bq', False):
+    if config.get('upload_to_bq', False) == 'true':
         bq_dataset = config.get('bq_dataset', '')
         table_id = f'{bucket_name}.{bq_dataset}.{stream}'
         uri = f'gs://{bucket_name}/{blob_path}'
