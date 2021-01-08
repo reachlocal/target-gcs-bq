@@ -123,6 +123,7 @@ def flush_to_file(stream, data, destination_path, headers, config, storage_clien
     blob = bucket.blob(blob_path)
     blob.upload_from_filename(filepath)
     logger.info(f'Uploaded to {blob_path}')
+    os.remove(filepath)
 
     if config.get('upload_to_bq', False) == 'true':
         bq_dataset = config.get('bq_dataset', '')
