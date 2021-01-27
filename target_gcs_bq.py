@@ -20,6 +20,7 @@ from jsonschema.validators import Draft4Validator
 import singer
 
 logger = singer.get_logger()
+truncated = {}
 
 def emit_state(state):
     if state is not None:
@@ -93,6 +94,22 @@ def persist_messages(delimiter, quotechar, messages, destination_path, google_fo
             schemas[stream] = o['schema']
             validators[stream] = Draft4Validator(o['schema'])
             key_properties[stream] = o['key_properties']
+
+            props = o["schema"]["properties"].items()
+            date_column = next(filter(lambda x: 'format' in x[1] and x[1]['format'] == 'date', props), None)
+            daily = config.get('daily', False) == 'true'
+
+            global truncated
+            if daily and date_column is not None and stream not in truncated:
+                yesterday = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+                bq_client = bigquery.Client(project=config.get('bucket_name', ''))
+                bq_dataset = config.get('bq_dataset', '')
+                delete_query = f'DELETE FROM `{bq_dataset}`.{stream} WHERE {date_column[0]} = \'{yesterday}\''
+                logger.info(f'Truncating table {stream}: {delete_query}')
+                delete_job = bq_client.query(delete_query)
+                result = delete_job.result()
+                logger.info(f'Table truncated: {result}')
+                truncated[stream] = True
         else:
             logger.warning("Unknown message type {} in message {}"
                             .format(o['type'], o))
