@@ -96,7 +96,7 @@ def persist_messages(delimiter, quotechar, messages, destination_path, google_fo
             key_properties[stream] = o['key_properties']
 
             props = o["schema"]["properties"].items()
-            date_column = next(filter(lambda x: 'format' in x[1] and x[1]['format'] == 'date', props), None)
+            date_column = ['DATE(start_time_utc)'] if stream == 'calls_report' else next(filter(lambda x: 'format' in x[1] and x[1]['format'] == 'date', props), None)
             daily = config.get('daily', False) == 'true'
 
             global truncated
