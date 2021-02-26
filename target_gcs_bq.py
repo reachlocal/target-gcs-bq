@@ -77,6 +77,7 @@ def persist_messages(delimiter, quotechar, messages, destination_path, google_fo
 
             data[o['stream']].append(flattened_record.values())
             max_rows = 250000 if o['stream'] == 'AD_PERFORMANCE_REPORT' else 1000000
+            max_rows = 50000 if o['stream'] == 'proposal' else max_rows
             if len(data[o['stream']]) >= max_rows:
                 with data_lock:
                     flush_to_file(o['stream'], data, destination_path, headers, config, storage_client, bq_client)
