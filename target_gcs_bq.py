@@ -149,7 +149,7 @@ def flush_to_file(stream, data, destination_path, headers, config, storage_clien
         uri = f'gs://{bucket_name}/{blob_path}'
 
         job_config = bigquery.LoadJobConfig(
-                    autodetect=False,
+                    autodetect=config.get('autodetect_schema', False),
                     source_format=bigquery.SourceFormat.CSV,
                     skip_leading_rows=1,
                     max_bad_records=30)
